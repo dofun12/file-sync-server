@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Locations</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <th:block th:insert="~{layout/imports.html::cssimports}"></th:block>
+</head>
+<body>
+<div class="container-fluid">
+    <th:block th:insert="~{layout/menu.html::menu}"></th:block>
+    <h1>Locations</h1>
+    <div class="row">
+        <div class="col">Id</div>
+        <div class="col">Name</div>
+        <div class="col">Pathkey</div>
+        <div class="col">Action</div>
+    </div>
+
+    <div class="row" th:each="location : ${locations}">
+        <div class="col" th:text="${location.id}"></div>
+        <div class="col" th:text="${location.name}"></div>
+        <div class="col" th:text="${location.pathkey}"></div>
+        <div class="col">
+            <form th:action="@{/locations/delete}" method="post">
+                <input type="hidden" th:name="id" th:value="${location.id}"/>
+                <input type="submit" value="Delete"/>
+            </form>
+        </div>
+    </div>
+</div>
+<th:block th:insert="~{layout/imports.html::jsimports}"></th:block>
+
+</body>
+</html>

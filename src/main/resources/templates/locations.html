@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <fieldset>
+        <label>Go to dir</label>
+        <input type="text" name="gotodir">
+        <button onclick="gotoDir()">Go</button>
+    </fieldset>
+    <div class="container">
+        <h1>Browse <span th:text="${selectedFolder}"></span></h1>
+        <h3 th:text="${selectedPath}"></h3>
+        <div class="row" th:if="${hasParent}">
+            <div class="col-12"><a th:href="@{/browse(path=${parentPathKey})}" th:text=".."></a> </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4" th:each="file : ${files}">
+                <a th:if="${file['isdir']}" th:href="@{/browse(path=${file['pathkey']})}">
+                    <h2 th:text="${file['name']}"></h2>
+                </a>
+                <h2  th:if="${not file['isdir']}" th:text="${file['name']}"></h2>
+                <p th:text="${file['path']}"></p>
+                <p th:text="${file['pathkey']}"></p>
+
+            </div>
+
+        </div>
+
+    </div>
+    <script>
+        function gotoDir() {
+            const input = document.querySelector('input[name="gotodir"]');
+            const path = input.value;
+            window.location.href = '/browse?path=' + btoa(path);
+        }
+    </script>
+</body>
+</html>

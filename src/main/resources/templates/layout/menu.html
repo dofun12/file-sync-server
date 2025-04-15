@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu</title>
+</head>
+<body th:fragment="menu">
+<menu>
+    <li><a th:href="@{/browse}">Browse</a></li>
+    <li><a th:href="@{/operations}">Operations</a></li>
+    <li><a th:href="@{/locations}">Locations</a></li>
+</menu>
+</body>
+</html>
