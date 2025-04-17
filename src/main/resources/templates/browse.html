@@ -1,10 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Title</title>
+    <th:block th:insert="~{layout/imports.html::cssimports}"></th:block>
 </head>
 <body>
+<div class="container-fluid">
+    <th:block th:insert="~{layout/menu.html::menu}"></th:block>
+    <div class="row">
+        <fieldset class="col-12 mb-4">
+            <label>Go to dir</label>
+            <input type="text" name="gotodir">
+            <button onclick="gotoDir()">Go</button>
+        </fieldset>
+    </div>
+
+    <h1>Browse <span th:text="${selectedFolder}"></span></h1>
+    <h3 th:text="${selectedPath}"></h3>
+    <div class="row" th:if="${hasParent}">
+        <div class="col-12">
+            <a class="text-xxl-start" th:href="@{/browse(path=${parentPathKey})}">
+                <img src="/folder-parent.svg" width="40px" height="40px" alt="Parent folder">
+                <span class="text-large">..</span>
+            </a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4" th:each="file : ${files}">
+            <div th:if="${file['isdir']}">
+                <a th:href="@{/browse(path=${file['pathkey']})}">
+                    <img src="/folder.png" width="20px" height="20px">
+                    <span th:text="${file['name']}"></span>
+                </a>
+            </div>
+            <div th:if="${not file['isdir']}">
+                <img src="/file.svg" width="20px" height="20px">
+                <span th:text="${file['name']}"></span>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<form class="fixed-bottom-form" th:action="@{/locations/save}" method="post">
+    <input type="hidden" name="name" th:value="${selectedFolder}">
+    <input type="hidden" name="pathkey" th:value="${selectedPathKey}">
+    <input type="submit" value="Salvar location">
+</form>
+<th:block th:insert="~{layout/imports.html::jsimports}"></th:block>
+<script>
+
+
+    function gotoDir() {
+        const input = document.querySelector('input[name="gotodir"]');
+        const path = input.value;
+        window.location.href = '/browse?path=' + btoa(path);
+    }
+</script>
 
 </body>
 </html>

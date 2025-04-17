@@ -1,0 +1,39 @@
+.fixed-bottom-form {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f8f9fa; /* Optional: Background color */
+    padding: 10px; /* Optional: Padding for spacing */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Optional: Shadow for better visibility */
+    display: flex;
+    justify-content: space-between; /* Align items within the form */
+    align-items: center; /* Center items vertically */
+}
+menu,
+ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    width: 400px;
+}
+
+li {
+    flex-grow: 1;
+}
+
+a {
+    width: 100%;
+}
+.text-large {
+    font-size: 1.5em;
+}
+.text-small {
+    font-size: 0.8em;
+}
+.text-xlarge {
+    font-size: 2em;
+}
+.text-xxlarge {
+    font-size: 3em;
+}

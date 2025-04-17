@@ -1,4 +1,6 @@
 package org.lemanoman.filesyncserver.dto;
 
-public class FileOperationDto {
+public record FileOperationDto(String sourcePath,
+                               String targetPath,
+                               String operation) {
 }

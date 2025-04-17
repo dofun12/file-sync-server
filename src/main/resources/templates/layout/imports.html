@@ -1,10 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Imports</title>
 </head>
 <body>
-$END$
+<th:block th:fragment="cssimports">
+    <link rel="stylesheet" href="/default.css">
+    <link rel="stylesheet" href="/bootstrap-5.0.2-dist/css/bootstrap.css">
+</th:block>
+<th:block th:fragment="jsimports">
+    <script src="/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js"></script>
+</th:block>
 </body>
 </html>

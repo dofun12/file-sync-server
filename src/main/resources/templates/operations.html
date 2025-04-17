@@ -1,25 +1,72 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Locations</title>
+    <title>Operations</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <th:block th:insert="~{layout/imports.html::cssimports}"></th:block>
 </head>
 <body>
-<h1>Locations</h1>
-<table border="1">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Path Key</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="location : ${locations}">
-        <td th:text="${location.id}"></td>
-        <td th:text="${location.name}"></td>
-        <td th:text="${location.pathkey}"></td>
-    </tr>
-    </tbody>
-</table>
+<div class="container-fluid">
+    <th:block th:insert="~{layout/menu.html::menu}"></th:block>
+    <h1>Operations</h1>
+
+    <form th:action="@{/operations/save}" method="post" class="row">
+        <label class="col-3 col-lg-1 col-form-label" for="itemA">Source Path Key</label>
+        <div class="col-3 col-lg-2">
+            <select id="itemA" name="sourcePathKey" class="form-select">
+                <option th:each="location: ${locations}" th:value="${location.pathkey}"
+                        th:text="${location.name}"></option>
+            </select>
+        </div>
+        <label class="col-3 col-lg-1 col-form-label" for="itemB">Target Path Key</label>
+        <div class="col-3 col-lg-1">
+            <select id="itemB" name="targetPathKey" class="form-select">
+                <option th:each="location: ${locations}" th:value="${location.pathkey}"
+                        th:text="${location.name}"></option>
+            </select>
+        </div>
+        <label class="col-2  col-lg-1 col-form-label" for="itemC">Operation</label>
+        <div class="col-2  col-lg-1">
+            <select id="itemC" name="operationTypeId" class="form-select">
+                <option th:each="operationType : ${operationTypes}" th:value="${operationType.id}"
+                        th:text="${operationType.name}"></option>
+            </select>
+        </div>
+        <div class="col-4  col-lg-1">
+            <input type="submit" value="Add Operation"/>
+        </div>
+
+    </form>
+    <div  class="row mt-4 mb-2">
+        <h3 class="col-12">List</h3>
+    </div>
+    <div class="row">
+        <div class="col">Source Path Key</div>
+        <div class="col">Target Path Key</div>
+        <div class="col">Operation</div>
+        <div class="col">Action</div>
+    </div>
+
+    <div class="row" th:each="operation : ${operations}">
+        <div class="col" th:text="${operation.sourcePathKey}"></div>
+        <div class="col" th:text="${operation.targetPathKey}"></div>
+        <div class="col" th:text="${operation.operationType.name}"></div>
+        <div class="col">
+            <form th:action="@{/operations/delete}" method="post">
+                <input type="hidden" th:name="${operation.id}" th:value="${operation.id}"/>
+                <input type="submit" value="Delete"/>
+            </form>
+        </div>
+        <div class="col">
+            <form th:action="@{/operations/start}" method="post">
+                <input type="hidden" th:name="id" th:value="${operation.id}"/>
+                <input type="submit" value="Iniciar"/>
+            </form>
+        </div>
+    </div>
+
+</div>
+<th:block th:insert="~{layout/imports.html::jsimports}"></th:block>
 </body>
 </html>

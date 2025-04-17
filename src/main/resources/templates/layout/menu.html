@@ -6,10 +6,27 @@
     <title>Menu</title>
 </head>
 <body th:fragment="menu">
-<menu>
-    <li><a th:href="@{/browse}">Browse</a></li>
-    <li><a th:href="@{/operations}">Operations</a></li>
-    <li><a th:href="@{/locations}">Locations</a></li>
-</menu>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">File Sync Server</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link " th:href="@{/browse}">Browse</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link " th:href="@{/operations}">Operations</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link " th:href="@{/locations}">Locations</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 </body>
 </html>

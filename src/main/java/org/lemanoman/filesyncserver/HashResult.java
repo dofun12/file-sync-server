@@ -1,4 +1,4 @@
-package org.lemanoman;
+package org.lemanoman.filesyncserver;
 
 import java.io.File;
 

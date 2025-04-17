@@ -1,4 +1,9 @@
 package org.lemanoman.filesyncserver.interfaces;
 
-public class FileComparatorCallback {
+import org.lemanoman.filesyncserver.dto.FileOperationDto;
+
+import java.util.List;
+
+public interface FileComparatorCallback {
+    void onFinish(List<FileOperationDto> fileOperations);
 }

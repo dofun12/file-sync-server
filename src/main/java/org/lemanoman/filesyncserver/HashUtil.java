@@ -1,4 +1,4 @@
-package org.lemanoman;
+package org.lemanoman.filesyncserver;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HashUtil {
+    public enum HashType {
+        MD5, SHA256
+    }
     public enum ALGORITHM {
         SHA256("SHA-256"),
         SHA512("SHA-512");
@@ -98,14 +101,14 @@ public class HashUtil {
     }
 
     public static HashResult getPartialSHA256(File file) {
-        return getPartialHash(file, Main.HashType.SHA256, 4, 1024);
+        return getPartialHash(file, HashType.SHA256, 4, 1024);
     }
 
     public static HashResult getPartialMD5(File file) {
-        return getPartialHash(file, Main.HashType.MD5, 100, 1024);
+        return getPartialHash(file, HashType.MD5, 100, 1024);
     }
 
-    public static HashResult getPartialHash(File file, Main.HashType hashType, final long fragments, final long maxPartSize) {
+    public static HashResult getPartialHash(File file, HashType hashType, final long fragments, final long maxPartSize) {
         List<byte[]> parts = new ArrayList<>((int) fragments);
         long size = file.length();
 
@@ -136,7 +139,7 @@ public class HashUtil {
             }
             long start = System.currentTimeMillis();
             String hash = "";
-            if(hashType== Main.HashType.MD5){
+            if(hashType== HashType.MD5){
                 hash = HashUtil.getMD5Hash(finalBytes);
             } else {
                 hash = HashUtil.getSHA256Hash(finalBytes);
@@ -155,7 +158,7 @@ public class HashUtil {
     public static HashResult getFullMD5Sum(File file){
         final long start = System.currentTimeMillis();
         try (InputStream is = Files.newInputStream(Paths.get(file.getAbsolutePath()))){
-            return new HashResult(file,org.apache.commons.codec.digest.DigestUtils.md5Hex(is), Main.HashType.MD5.toString(), file.length(), System.currentTimeMillis()-start);
+            return new HashResult(file,org.apache.commons.codec.digest.DigestUtils.md5Hex(is), HashType.MD5.toString(), file.length(), System.currentTimeMillis()-start);
         } catch (IOException e) {
             e.printStackTrace();
         }
