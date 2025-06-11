@@ -16,14 +16,14 @@
         <div class="col-3 col-lg-2">
             <select id="itemA" name="sourcePathKey" class="form-select">
                 <option th:each="location: ${locations}" th:value="${location.pathkey}"
-                        th:text="${location.name}"></option>
+                        th:text="${location.fullPath}"></option>
             </select>
         </div>
         <label class="col-3 col-lg-1 col-form-label" for="itemB">Target Path Key</label>
         <div class="col-3 col-lg-1">
             <select id="itemB" name="targetPathKey" class="form-select">
                 <option th:each="location: ${locations}" th:value="${location.pathkey}"
-                        th:text="${location.name}"></option>
+                        th:text="${location.fullPath}"></option>
             </select>
         </div>
         <label class="col-2  col-lg-1 col-form-label" for="itemC">Operation</label>

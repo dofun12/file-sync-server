@@ -1,5 +1,7 @@
 package org.lemanoman.filesyncserver.service;
 
+import org.lemanoman.filesyncserver.dto.FileOperationDto;
+import org.lemanoman.filesyncserver.interfaces.FileMoverCallback;
 import org.lemanoman.filesyncserver.model.OperationModel;
 import org.lemanoman.filesyncserver.model.OperationTypeModel;
 import org.lemanoman.filesyncserver.model.StepModel;
@@ -7,6 +9,7 @@ import org.lemanoman.filesyncserver.repository.OperationRepository;
 import org.lemanoman.filesyncserver.repository.OperationTypeRepository;
 import org.lemanoman.filesyncserver.repository.StepRepository;
 import org.lemanoman.filesyncserver.tasks.FileComparatorTask;
+import org.lemanoman.filesyncserver.tasks.FileMoverTask;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -42,6 +45,59 @@ public class OperationService {
         return stepRepository.findAllByOperation_Id(operationId);
     }
 
+    public void runSteps(Long operationId) {
+        var operationOpt = operationRepository.findById(operationId);
+        if (!operationOpt.isPresent()) {
+            return;
+        }
+        var steps = stepRepository.findAllByOperation_Id(operationId);
+        for(var step : steps){
+            if ("MKDIR".equals(step.getOperationType())) {
+                new FileMoverTask(step.getId(), new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getOperationType()), new FileMoverCallback() {
+                    @Override
+                    public void onStart(String id, FileOperationDto fileOperation) {
+                        stepRepository.findById(id).ifPresent(step -> {
+                            step.setStatusMessage("Running");
+                            stepRepository.save(step);
+                        });
+                    }
+
+                    @Override
+                    public void onFinish(String id, FileOperationDto fileOperation, String status) {
+                        stepRepository.findById(id).ifPresent(step -> {
+                            step.setStatusMessage(status);
+                            step.setFinished(1);
+                            stepRepository.save(step);
+                        });
+                    }
+                }).run();
+            }
+        }
+        for(var step : steps){
+            var fileOperation = new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getOperationType());
+            var task =  new FileMoverTask(step.getId(), fileOperation, new FileMoverCallback() {
+                @Override
+                public void onStart(String id, FileOperationDto fileOperation) {
+                    stepRepository.findById(id).ifPresent(step -> {
+                        step.setStatusMessage("Running");
+                        stepRepository.save(step);
+                    });
+                }
+
+                @Override
+                public void onFinish(String id, FileOperationDto fileOperation, String status) {
+                    stepRepository.findById(id).ifPresent(step -> {
+                        step.setStatusMessage(status);
+                        step.setFinished(1);
+                        stepRepository.save(step);
+                    });
+                }
+            });
+            executor.submit(task);
+        }
+
+    }
+
     public OperationService(OperationRepository operationRepository, OperationTypeRepository operationTypeRepository, StepRepository stepRepository) {
         this.operationRepository = operationRepository;
         this.operationTypeRepository = operationTypeRepository;
@@ -64,6 +120,31 @@ public class OperationService {
         operation.setTargetPathKey(targetPathKey);
         operation.setOperationType(operationTypeRepository.findById(operationTypeId).orElse(null));
         operationRepository.save(operation);
+    }
+
+    public void runOperation(Long operationId) {
+        if(operationId == null){
+            return;
+        }
+        final var stepModelList = stepRepository.findAllByOperation_Id(operationId);
+        for(var step: stepModelList){
+            final FileOperationDto fileOperation = new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getOperationType());
+            executor.submit(new FileMoverTask(step.getId(), fileOperation, new FileMoverCallback() {
+                @Override
+                public void onStart(String id, FileOperationDto fileOperation) {
+                    stepRepository.findById(step.getId()).ifPresent(step -> {
+                        step.setStatusMessage("Iniciado");
+                        stepRepository.save(step);
+                    });
+                }
+
+                @Override
+                public void onFinish(String id, FileOperationDto fileOperation, String status) {
+
+                }
+            }));
+        }
+
     }
 
     public void startOperation(Long operationId){

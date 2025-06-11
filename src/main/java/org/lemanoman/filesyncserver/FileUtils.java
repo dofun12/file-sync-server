@@ -3,6 +3,7 @@ package org.lemanoman.filesyncserver;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class FileUtils {
@@ -37,6 +38,10 @@ public class FileUtils {
         }
         return files;
 
+    }
+
+    public static String fromBase64(String base64Path) {
+        return new String(Base64.getDecoder().decode(base64Path));
     }
 
     public  static boolean isFileEquals(File sourceFile, File targetFile) {

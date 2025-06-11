@@ -2,6 +2,8 @@ package org.lemanoman.filesyncserver.model;
 
 import jakarta.persistence.*;
 
+import java.util.Base64;
+
 @Entity
 @Table(name = "location")
 public class LocationModel {

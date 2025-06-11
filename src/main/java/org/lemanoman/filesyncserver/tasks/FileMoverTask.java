@@ -34,10 +34,12 @@ public class FileMoverTask implements Runnable {
 
     @Override
     public void run() {
+        callback.onStart(id, fileOperation);
         if (fileOperation == null) {
             doCallback("File operation is null");
             return;
         }
+
         String sourcePath = fileOperation.sourcePath();
         String targetPath = fileOperation.targetPath();
         File targetFile = new File(targetPath);

@@ -38,10 +38,28 @@ public class StepController {
         return "steps";
     }
 
+    @GetMapping("/steps/status/operation/{id}")
+    public String getOperationStatusSteps(@PathVariable Long id, Model model) {
+        OperationModel operation = operationService.getOperationId(id);
+        if (operation == null) {
+            return "redirect:/operations";
+        }
+        model.addAttribute("operation", operation);
+        List<StepModel> stepModels = operationService.getListSteps(id);
+        model.addAttribute("steps", stepModels);
+        return "steps_status";
+    }
+
     @PostMapping("/steps/delete")
     public String deleteStep(String id) {
         operationService.deleteStep(id);
         return "redirect:/steps/operation/" + id;
+    }
+
+    @PostMapping("/steps/run")
+    public String stepsRun(String id) {
+        operationService.runSteps(Long.parseLong(id));
+        return "redirect:/steps/status/operation/" + id;
     }
 
 

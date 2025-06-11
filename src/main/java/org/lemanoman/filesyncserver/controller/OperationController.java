@@ -1,5 +1,7 @@
 package org.lemanoman.filesyncserver.controller;
 
+import org.lemanoman.filesyncserver.FileUtils;
+import org.lemanoman.filesyncserver.dto.LocationDto;
 import org.lemanoman.filesyncserver.model.LocationModel;
 import org.lemanoman.filesyncserver.model.OperationModel;
 import org.lemanoman.filesyncserver.model.OperationTypeModel;
@@ -31,8 +33,16 @@ public class OperationController {
 
     @GetMapping("/operations")
     public String list(Model model) {
+
         List<LocationModel> locations = locationService.getAllLocations();
-        model.addAttribute("locations", locations);
+        List<LocationDto> locationDtos = locations.stream().map(locationModel -> {
+            Long id = locationModel.getId();
+            String locationName = locationModel.getName();
+            String locationPathKey = locationModel.getPathkey();
+            String locationFullPath = FileUtils.fromBase64(locationPathKey);
+            return new LocationDto(id, locationName, locationPathKey, locationFullPath);
+        }).toList();
+        model.addAttribute("locations", locationDtos);
 
         List<OperationTypeModel> operationTypes = operationService.getAllOperationTypes();
         model.addAttribute("operationTypes", operationTypes);

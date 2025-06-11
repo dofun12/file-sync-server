@@ -32,8 +32,18 @@ public class StepModel {
     @Column(name = "status_message", length = 255)
     private String statusMessage;
 
+    private Long size;
+
     @Column
     private int finished=0;
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
+    }
 
     public String getId() {
         return id;

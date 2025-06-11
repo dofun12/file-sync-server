@@ -28,9 +28,26 @@ public class DirectoryController {
     }
 
     @GetMapping("/browse")
-    public String browseDirectory(@RequestParam(value = "path", required = false) String base64Path, Model model) {
+    public String browseDirectory(@RequestParam(value = "path", required = false) String base64Path, @RequestParam(value = "create_folder", required = false) String createFolder, Model model) {
         model.addAttribute("hasParent", false);
         List<Map<String, String>> result = new ArrayList<>();
+        if(createFolder != null) {
+            try {
+                String decodedPath = fromBase64(base64Path);
+                File newFolder = new File(decodedPath, createFolder);
+                model.addAttribute("selectedPath", decodedPath);
+                model.addAttribute("selectedPathKey", base64Path);
+                if (newFolder.mkdir()) {
+                    model.addAttribute("message", "Folder created successfully: " + createFolder);
+                } else {
+                    model.addAttribute("message", "Failed to create folder: " + createFolder);
+                }
+            } catch (Exception e) {
+                model.addAttribute("message", "Error creating folder: " + e.getMessage());
+            }
+            model.addAttribute("files", result);
+            return "browse";
+        }
         try {
             if(base64Path == null || base64Path.isEmpty()) {
                 base64Path = System.getProperty("user.dir");
