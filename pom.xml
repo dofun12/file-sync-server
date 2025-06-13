@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.lemanoman</groupId>
     <artifactId>file-sync-server</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2</version>
     <name>file-sync-server</name>
     <description>file-sync-server</description>
     <url/>

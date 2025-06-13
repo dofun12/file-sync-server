@@ -59,6 +59,11 @@ public class FileComparatorTaskTest {
     void testDefault() {
         var callback = new FileComparatorCallback() {
             @Override
+            public void onNextCompare(FileOperationDto fileOperation) {
+
+            }
+
+            @Override
             public void onFinish(List<FileOperationDto> fileOperations) {
                 for (FileOperationDto fileOperation : fileOperations) {
                     System.out.println(fileOperation.sourcePath()+" -> " + fileOperation.targetPath() + " : " + fileOperation.operation());
@@ -75,6 +80,11 @@ public class FileComparatorTaskTest {
     @Test
     void testReal() {
         var callback = new FileComparatorCallback() {
+            @Override
+            public void onNextCompare(FileOperationDto fileOperation) {
+
+            }
+
             @Override
             public void onFinish(List<FileOperationDto> fileOperations) {
                 int overwrites = 0;

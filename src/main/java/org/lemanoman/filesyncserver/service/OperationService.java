@@ -1,6 +1,7 @@
 package org.lemanoman.filesyncserver.service;
 
 import org.lemanoman.filesyncserver.dto.FileOperationDto;
+import org.lemanoman.filesyncserver.interfaces.FileComparatorCallback;
 import org.lemanoman.filesyncserver.interfaces.FileMoverCallback;
 import org.lemanoman.filesyncserver.model.OperationModel;
 import org.lemanoman.filesyncserver.model.OperationTypeModel;
@@ -10,6 +11,7 @@ import org.lemanoman.filesyncserver.repository.OperationTypeRepository;
 import org.lemanoman.filesyncserver.repository.StepRepository;
 import org.lemanoman.filesyncserver.tasks.FileComparatorTask;
 import org.lemanoman.filesyncserver.tasks.FileMoverTask;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -26,13 +28,13 @@ public class OperationService {
     public static final String OPERATION_DELETE = "DELETE";
     public static final String OPERATION_OVERWRITE = "OVERWRITE";
     public ExecutorService executor = Executors.newFixedThreadPool(4);
-
+    final Logger logger = org.slf4j.LoggerFactory.getLogger(OperationService.class);
     final OperationRepository operationRepository;
     final OperationTypeRepository operationTypeRepository;
     final StepRepository stepRepository;
 
-    private void initOperationTypes(){
-        if(!operationTypeRepository.findAll().isEmpty()){
+    private void initOperationTypes() {
+        if (!operationTypeRepository.findAll().isEmpty()) {
             return;
         }
         operationTypeRepository.save(new OperationTypeModel(1L, OPERATION_COPY));
@@ -51,7 +53,7 @@ public class OperationService {
             return;
         }
         var steps = stepRepository.findAllByOperation_Id(operationId);
-        for(var step : steps){
+        for (var step : steps) {
             if ("MKDIR".equals(step.getOperationType())) {
                 new FileMoverTask(step.getId(), new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getOperationType()), new FileMoverCallback() {
                     @Override
@@ -73,9 +75,9 @@ public class OperationService {
                 }).run();
             }
         }
-        for(var step : steps){
+        for (var step : steps) {
             var fileOperation = new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getOperationType());
-            var task =  new FileMoverTask(step.getId(), fileOperation, new FileMoverCallback() {
+            var task = new FileMoverTask(step.getId(), fileOperation, new FileMoverCallback() {
                 @Override
                 public void onStart(String id, FileOperationDto fileOperation) {
                     stepRepository.findById(id).ifPresent(step -> {
@@ -123,11 +125,11 @@ public class OperationService {
     }
 
     public void runOperation(Long operationId) {
-        if(operationId == null){
+        if (operationId == null) {
             return;
         }
         final var stepModelList = stepRepository.findAllByOperation_Id(operationId);
-        for(var step: stepModelList){
+        for (var step : stepModelList) {
             final FileOperationDto fileOperation = new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getOperationType());
             executor.submit(new FileMoverTask(step.getId(), fileOperation, new FileMoverCallback() {
                 @Override
@@ -147,18 +149,17 @@ public class OperationService {
 
     }
 
-    public void startOperation(Long operationId){
+    public void startOperation(Long operationId) {
         final var operation = operationRepository.findById(operationId).orElse(null);
         if (operation == null) {
             return;
         }
         String sourcePath = new String(Base64.getDecoder().decode(operation.getSourcePathKey()), StandardCharsets.UTF_8);
         String targetPath = new String(Base64.getDecoder().decode(operation.getTargetPathKey()), StandardCharsets.UTF_8);
-        executor.execute(new FileComparatorTask(sourcePath, targetPath, fileOperations -> {
-            if (fileOperations == null) {
-                return;
-            }
-            for (var fileOperation : fileOperations) {
+        executor.execute(new FileComparatorTask(sourcePath, targetPath, new FileComparatorCallback() {
+            @Override
+            public void onNextCompare(FileOperationDto fileOperation) {
+                logger.info("Comparing: {} -> {} : {}", fileOperation.sourcePath(), fileOperation.targetPath(), fileOperation.operation());
                 StepModel step = new StepModel();
                 step.setId(UUID.randomUUID().toString());
                 step.setOperation(operation);
@@ -168,7 +169,13 @@ public class OperationService {
                 step.setFinished(0);
                 stepRepository.save(step);
             }
-        }));
+
+            @Override
+            public void onFinish(List<FileOperationDto> fileOperations) {
+                logger.info("Finished comparing itens: {}", fileOperations.size());
+            }
+        }
+        ));
 
     }
 

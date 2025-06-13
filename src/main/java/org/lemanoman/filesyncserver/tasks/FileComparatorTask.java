@@ -4,11 +4,13 @@ import org.lemanoman.filesyncserver.FileUtils;
 import org.lemanoman.filesyncserver.HashUtil;
 import org.lemanoman.filesyncserver.dto.FileOperationDto;
 import org.lemanoman.filesyncserver.interfaces.FileComparatorCallback;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.*;
 
 public class FileComparatorTask implements Runnable{
+    Logger logger = org.slf4j.LoggerFactory.getLogger(FileComparatorTask.class);
     final String sourcePath;
     final String targetPath;
     final FileComparatorCallback callback;
@@ -48,10 +50,12 @@ public class FileComparatorTask implements Runnable{
                 if(sourceFile.isDirectory()) {
                     FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), "MKDIR");
                     fileOperations.add(fileOperation);
+                    callback.onNextCompare(fileOperation);
                     continue;
                 }
                 FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), "COPY");
                 fileOperations.add(fileOperation);
+                callback.onNextCompare(fileOperation);
                 continue;
             }
             if(targetFile.isDirectory()) {
@@ -62,7 +66,11 @@ public class FileComparatorTask implements Runnable{
             if(!hashSource.equals(targetSource)) {
                 FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), "OVERWRITE");
                 fileOperations.add(fileOperation);
+                callback.onNextCompare(fileOperation);
             }
+            FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), "SKIP");
+            fileOperations.add(fileOperation);
+            callback.onNextCompare(fileOperation);
 
         }
         callback.onFinish(fileOperations);
