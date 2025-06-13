@@ -49,6 +49,10 @@ public class FileMoverTask implements Runnable {
             return;
         }
         final var operation = fileOperation.operation();
+        if ("SKIPPED".equals(operation)) {
+            doCallback("Operation skipped");
+            return;
+        }
         if ("MKDIR".equals(operation) && sourceFile.isDirectory()) {
             if(targetFile.mkdirs()){
                 doCallback("Directory created");
