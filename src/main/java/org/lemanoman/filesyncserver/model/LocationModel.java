@@ -8,7 +8,8 @@ import java.util.Base64;
 @Table(name = "location")
 public class LocationModel {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(name = "location_generator", sequenceName = "location_seq", allocationSize = 1)
     private Long id;
 
     @Column

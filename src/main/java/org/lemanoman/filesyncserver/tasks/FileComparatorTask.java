@@ -14,6 +14,14 @@ public class FileComparatorTask implements Runnable{
     final String sourcePath;
     final String targetPath;
     final FileComparatorCallback callback;
+    Long id = null;
+
+    public FileComparatorTask(Long id, String sourcePath, String targetPath, FileComparatorCallback callback) {
+        this.id = id;
+        this.sourcePath = sourcePath;
+        this.targetPath = targetPath;
+        this.callback = callback;
+    }
 
     public FileComparatorTask(String sourcePath, String targetPath, FileComparatorCallback callback) {
         this.sourcePath = sourcePath;
@@ -26,7 +34,9 @@ public class FileComparatorTask implements Runnable{
         if(callback == null) {
             return;
         }
+
         if(sourcePath == null || targetPath == null) {
+            callback.onStart(id, 0, 0.0);
             callback.onFinish(null);
             return;
         }
@@ -38,6 +48,15 @@ public class FileComparatorTask implements Runnable{
         var allFiles = FileUtils.listFiles(source);
         var allDirs = FileUtils.listAllSubDir(source);
         allFiles.addAll(allDirs);
+        Double sumTotal = 0.0;
+        for(File file : allFiles) {
+            if(file.isDirectory()) {
+                sumTotal+=10d; // 10 bytes for directory
+                continue;
+            }
+            sumTotal += file.length();
+        }
+        callback.onStart(id, allFiles.size(), sumTotal);
         allFiles.sort(Comparator.comparing(File::getAbsolutePath));
         for(File sourceFile : allFiles) {
             String sourcePath = source.getAbsolutePath();
@@ -48,12 +67,12 @@ public class FileComparatorTask implements Runnable{
             File targetFile = new File(newFilename.replaceAll("@", target.getAbsolutePath().replaceAll("\\\\", "\\\\\\\\")));
             if(!targetFile.exists()) {
                 if(sourceFile.isDirectory()) {
-                    FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), "MKDIR");
+                    FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), 10L,"MKDIR");
                     fileOperations.add(fileOperation);
                     callback.onNextCompare(fileOperation);
                     continue;
                 }
-                FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), "COPY");
+                FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(),"COPY");
                 fileOperations.add(fileOperation);
                 callback.onNextCompare(fileOperation);
                 continue;
@@ -64,11 +83,11 @@ public class FileComparatorTask implements Runnable{
             final String hashSource = HashUtil.getPartialMD5(sourceFile).hash();
             final String targetSource = HashUtil.getPartialMD5(targetFile).hash();
             if(!hashSource.equals(targetSource)) {
-                FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), "OVERWRITE");
+                FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "OVERWRITE");
                 fileOperations.add(fileOperation);
                 callback.onNextCompare(fileOperation);
             }
-            FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), "SKIP");
+            FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "SKIP");
             fileOperations.add(fileOperation);
             callback.onNextCompare(fileOperation);
 

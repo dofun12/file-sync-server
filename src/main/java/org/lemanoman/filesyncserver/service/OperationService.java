@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,6 +33,8 @@ public class OperationService {
     final OperationRepository operationRepository;
     final OperationTypeRepository operationTypeRepository;
     final StepRepository stepRepository;
+    private ConcurrentHashMap<Long,Double> atomicSizeSum = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Long,Integer> atomicScannedFiles = new ConcurrentHashMap<>();
 
     private void initOperationTypes() {
         if (!operationTypeRepository.findAll().isEmpty()) {
@@ -55,7 +58,7 @@ public class OperationService {
         var steps = stepRepository.findAllByOperation_Id(operationId);
         for (var step : steps) {
             if ("MKDIR".equals(step.getOperationType())) {
-                new FileMoverTask(step.getId(), new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getOperationType()), new FileMoverCallback() {
+                new FileMoverTask(step.getId(), new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getSize(), step.getOperationType()), new FileMoverCallback() {
                     @Override
                     public void onStart(String id, FileOperationDto fileOperation) {
                         stepRepository.findById(id).ifPresent(step -> {
@@ -76,7 +79,7 @@ public class OperationService {
             }
         }
         for (var step : steps) {
-            var fileOperation = new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getOperationType());
+            var fileOperation = new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getSize(), step.getOperationType());
             var task = new FileMoverTask(step.getId(), fileOperation, new FileMoverCallback() {
                 @Override
                 public void onStart(String id, FileOperationDto fileOperation) {
@@ -130,7 +133,7 @@ public class OperationService {
         }
         final var stepModelList = stepRepository.findAllByOperation_Id(operationId);
         for (var step : stepModelList) {
-            final FileOperationDto fileOperation = new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getOperationType());
+            final FileOperationDto fileOperation = new FileOperationDto(step.getSourcePath(), step.getTargetPath(),step.getSize(), step.getOperationType());
             executor.submit(new FileMoverTask(step.getId(), fileOperation, new FileMoverCallback() {
                 @Override
                 public void onStart(String id, FileOperationDto fileOperation) {
@@ -154,9 +157,24 @@ public class OperationService {
         if (operation == null) {
             return;
         }
+        operation.setStarted(1);
+        atomicSizeSum.put(operationId, 0.0);
+        operationRepository.save(operation);
+
         String sourcePath = new String(Base64.getDecoder().decode(operation.getSourcePathKey()), StandardCharsets.UTF_8);
         String targetPath = new String(Base64.getDecoder().decode(operation.getTargetPathKey()), StandardCharsets.UTF_8);
-        executor.execute(new FileComparatorTask(sourcePath, targetPath, new FileComparatorCallback() {
+        executor.execute(new FileComparatorTask(operationId, sourcePath, targetPath, new FileComparatorCallback() {
+            @Override
+            public void onStart(Long id,Integer totalFiles, Double totalsize) {
+                if(!operation.getId().equals(id)) {
+                    return;
+                }
+                operation.setTotalSize(totalsize);
+                operation.setStarted(1);
+                operation.setTotalFiles(totalFiles);
+                operationRepository.save(operation);
+            }
+
             @Override
             public void onNextCompare(FileOperationDto fileOperation) {
                 logger.info("Comparing: {} -> {} : {}", fileOperation.sourcePath(), fileOperation.targetPath(), fileOperation.operation());
@@ -166,8 +184,17 @@ public class OperationService {
                 step.setSourcePath(fileOperation.sourcePath());
                 step.setTargetPath(fileOperation.targetPath());
                 step.setOperationType(fileOperation.operation());
+                step.setSize(fileOperation.fileSize());
                 step.setFinished(0);
+                final Double finishedSize = atomicSizeSum.getOrDefault(operationId, 0.0) + fileOperation.fileSize();
+                atomicSizeSum.put(operationId, finishedSize);
+                operation.setFinishedSize(finishedSize);
+                final Integer totalScannedFiles = atomicScannedFiles.getOrDefault(operationId, 0)+1;
+                atomicScannedFiles.put(operationId, totalScannedFiles);
+                operation.setTotalScannedFiles(totalScannedFiles);
+                operationRepository.save(operation);
                 stepRepository.save(step);
+
             }
 
             @Override

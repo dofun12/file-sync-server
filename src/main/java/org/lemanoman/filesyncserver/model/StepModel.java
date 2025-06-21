@@ -32,6 +32,7 @@ public class StepModel {
     @Column(name = "status_message", length = 255)
     private String statusMessage;
 
+    @Column
     private Long size;
 
     @Column

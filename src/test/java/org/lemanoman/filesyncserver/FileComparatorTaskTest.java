@@ -59,6 +59,11 @@ public class FileComparatorTaskTest {
     void testDefault() {
         var callback = new FileComparatorCallback() {
             @Override
+            public void onStart(Long id, Integer totalFiles,Double totalsize) {
+
+            }
+
+            @Override
             public void onNextCompare(FileOperationDto fileOperation) {
 
             }
@@ -80,6 +85,11 @@ public class FileComparatorTaskTest {
     @Test
     void testReal() {
         var callback = new FileComparatorCallback() {
+            @Override
+            public void onStart(Long id, Integer totalFiles,Double totalsize) {
+
+            }
+
             @Override
             public void onNextCompare(FileOperationDto fileOperation) {
 

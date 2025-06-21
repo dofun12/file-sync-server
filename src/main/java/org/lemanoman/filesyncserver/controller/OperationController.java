@@ -61,7 +61,7 @@ public class OperationController {
     @PostMapping("/operations/start")
     public String startOperation(String id) {
         operationService.startOperation(Long.parseLong(id));
-        return "redirect:/steps/operation/" + id;
+        return "redirect:/operations";
     }
 
 }
