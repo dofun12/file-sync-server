@@ -9,4 +9,6 @@ import java.util.List;
 
 public interface StepRepository extends JpaRepository<StepModel, String> {
     List<StepModel> findAllByOperation_Id(Long id);
+
+    void deleteByOperation_Id(Long operationId);
 }

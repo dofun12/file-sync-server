@@ -17,10 +17,12 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class OperationService {
@@ -52,9 +54,17 @@ public class OperationService {
 
     public void runSteps(Long operationId) {
         var operationOpt = operationRepository.findById(operationId);
-        if (!operationOpt.isPresent()) {
+        if (operationOpt.isEmpty()) {
             return;
         }
+        final var ops = operationOpt.get();
+        if(Objects.equals(ops.getReady(), 0)) {
+            logger.warn("Operation {} is not ready to run steps", operationId);
+            return;
+        }
+
+        ops.setRunning(1);
+        operationRepository.save(ops);
         var steps = stepRepository.findAllByOperation_Id(operationId);
         for (var step : steps) {
             if ("MKDIR".equals(step.getOperationType())) {
@@ -78,6 +88,8 @@ public class OperationService {
                 }).run();
             }
         }
+        final int stepsSize = steps.size();
+        AtomicInteger totalFinished = new AtomicInteger(0);
         for (var step : steps) {
             var fileOperation = new FileOperationDto(step.getSourcePath(), step.getTargetPath(), step.getSize(), step.getOperationType());
             var task = new FileMoverTask(step.getId(), fileOperation, new FileMoverCallback() {
@@ -95,6 +107,16 @@ public class OperationService {
                         step.setStatusMessage(status);
                         step.setFinished(1);
                         stepRepository.save(step);
+                        final int finished = totalFinished.incrementAndGet();
+                        if(finished==stepsSize){
+                            var operation = operationRepository.findById(operationId).orElse(null);
+                            if (operation != null) {
+                                operation.setRunning(0);
+                                operation.setReady(1);
+                                operation.setFinished(1);
+                                operationRepository.save(operation);
+                            }
+                        }
                     });
                 }
             });
@@ -158,8 +180,17 @@ public class OperationService {
             return;
         }
         operation.setStarted(1);
+        operation.setReady(0);
+        operation.setRunning(0);
         atomicSizeSum.put(operationId, 0.0);
-        operationRepository.save(operation);
+        operationRepository.saveAndFlush(operation);
+        var steps = stepRepository.findAllByOperation_Id(operationId);
+        if(!steps.isEmpty()) {
+            for(var step : steps) {
+                stepRepository.deleteById(step.getId());
+            }
+        }
+        stepRepository.flush();
 
         String sourcePath = new String(Base64.getDecoder().decode(operation.getSourcePathKey()), StandardCharsets.UTF_8);
         String targetPath = new String(Base64.getDecoder().decode(operation.getTargetPathKey()), StandardCharsets.UTF_8);
@@ -172,7 +203,6 @@ public class OperationService {
                 operation.setTotalSize(totalsize);
                 operation.setStarted(1);
                 operation.setTotalFiles(totalFiles);
-                operationRepository.save(operation);
             }
 
             @Override
@@ -199,6 +229,9 @@ public class OperationService {
 
             @Override
             public void onFinish(List<FileOperationDto> fileOperations) {
+                operation.setReady(1);
+                operationRepository.save(operation);
+                operationRepository.flush();
                 logger.info("Finished comparing itens: {}", fileOperations.size());
             }
         }

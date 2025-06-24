@@ -24,6 +24,12 @@ public class OperationModel {
     private Integer totalScannedFiles=0;
 
     @Column
+    private Integer ready = 0;
+
+    @Column
+    private Integer running = 0;
+
+    @Column
     private Integer finished = 0;
 
     @Column
@@ -33,11 +39,10 @@ public class OperationModel {
     private Double finishedSize = 0d;
 
 
-
     @Column
     private String targetPathKey;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.DETACH)
     @JoinColumn(name = "operation_type_id", referencedColumnName = "id")
     private OperationTypeModel operationType;
 
@@ -118,6 +123,21 @@ public class OperationModel {
         return totalScannedFiles;
     }
 
+    public Integer getReady() {
+        return ready;
+    }
+
+    public void setReady(Integer ready) {
+        this.ready = ready;
+    }
+
+    public Integer getRunning() {
+        return running;
+    }
+
+    public void setRunning(Integer running) {
+        this.running = running;
+    }
     public void setTotalScannedFiles(Integer totalScannedFiles) {
         this.totalScannedFiles = totalScannedFiles;
     }

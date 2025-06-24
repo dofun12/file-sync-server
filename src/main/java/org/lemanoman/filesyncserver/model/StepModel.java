@@ -14,7 +14,7 @@ public class StepModel {
     @Column
     private String targetPath;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.DETACH)
     @JoinColumn(name = "operation_id", referencedColumnName = "id")
     private OperationModel operation;
 

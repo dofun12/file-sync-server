@@ -2,6 +2,7 @@ package org.lemanoman.filesyncserver.controller;
 
 import org.lemanoman.filesyncserver.FileUtils;
 import org.lemanoman.filesyncserver.dto.LocationDto;
+import org.lemanoman.filesyncserver.dto.OperationDto;
 import org.lemanoman.filesyncserver.model.LocationModel;
 import org.lemanoman.filesyncserver.model.OperationModel;
 import org.lemanoman.filesyncserver.model.OperationTypeModel;
@@ -47,7 +48,7 @@ public class OperationController {
         List<OperationTypeModel> operationTypes = operationService.getAllOperationTypes();
         model.addAttribute("operationTypes", operationTypes);
 
-        List<OperationModel> list = operationService.getAllOperations();
+        List<OperationDto> list = operationService.getAllOperations().stream().map(OperationDto::new).toList();
         model.addAttribute("operations", list);
         return "operations";
     }

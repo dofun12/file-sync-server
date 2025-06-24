@@ -87,7 +87,7 @@ public class FileComparatorTask implements Runnable{
                 fileOperations.add(fileOperation);
                 callback.onNextCompare(fileOperation);
             }
-            FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "SKIP");
+            FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "SKIPPED");
             fileOperations.add(fileOperation);
             callback.onNextCompare(fileOperation);
 

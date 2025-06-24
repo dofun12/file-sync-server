@@ -49,23 +49,42 @@
     </div>
 
     <div class="row" th:each="operation : ${operations}">
-        <div class="col" th:text="${operation.sourcePathKey}"></div>
-        <div class="col" th:text="${operation.targetPathKey}"></div>
-        <div class="col" th:text="${operation.operationType.name}"></div>
+        <div class="col" th:text="${operation.sourcePath}"></div>
+        <div class="col" th:text="${operation.targetPath}"></div>
+        <div class="col" th:text="${operation.operationName}"></div>
+        <div class="col" th:text="${operation.progressScan}"></div>
+        <div class="col" >
+            <p>Started: <span th:text="${operation.started}"></span>
+            <p>Ready: <span th:text="${operation.ready}"></span>
+            <p>Running: <span th:text="${operation.running}"></span>
+            <p>Finished: <span th:text="${operation.finished}"></span>
+
+        </div>
+        <div class="col" th:text="${operation.finished}"></div>
+
         <div class="col">
             <form th:action="@{/operations/delete}" method="post">
                 <input type="hidden" th:name="${operation.id}" th:value="${operation.id}"/>
                 <input type="submit" value="Delete"/>
             </form>
         </div>
-        <div th:if="${operation.started eq 0}" class="col">
+        <div class="col">
             <form th:action="@{/operations/start}" method="post">
                 <input type="hidden" th:name="id" th:value="${operation.id}"/>
-                <input type="submit" value="Iniciar"/>
+                <input type="submit" value="Scan"/>
             </form>
         </div>
-        <div th:if="${operation.started eq 1}" class="col">
-            <a th:href="@{/steps/operation/{id}(id=${operation.id})}">Status</a>
+        <div th:if="${operation.ready and not operation.running}">
+            <form th:action="@{/steps/run}" method="post">
+                <input type="hidden" name="id" th:value="${operation.id}">
+                <input type="submit" value="Iniciar operação">
+            </form>
+        </div>
+        <div th:if="${operation.running or operation.finished}" class="col">
+            <a th:href="@{/steps/status/operation/{id}(id=${operation.id})}">Status</a>
+        </div>
+        <div th:if="${operation.ready and not operation.running}" class="col">
+            <a th:href="@{/steps/operation/{id}(id=${operation.id})}">Scan Result</a>
         </div>
     </div>
 
