@@ -5,6 +5,7 @@ import org.lemanoman.filesyncserver.repository.LocationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,19 @@ import java.util.Optional;
 public class LocationService {
 
     private final LocationRepository locationRepository;
+
+    public LocationModel addLocationByPath(String path) {
+        File file = new File(path);
+        if (!file.exists() || !file.isDirectory()) {
+            throw new IllegalArgumentException("Invalid path: " + path);
+        }
+        LocationModel location = new LocationModel();
+        location.setName(file.getName());
+        // Generate a path key, e.g., using Base64 encoding
+        String pathKey = java.util.Base64.getEncoder().encodeToString(path.getBytes());
+        location.setPathkey(pathKey);
+        return saveLocation(location);
+    }
 
     public LocationService(LocationRepository locationRepository) {
         this.locationRepository = locationRepository;

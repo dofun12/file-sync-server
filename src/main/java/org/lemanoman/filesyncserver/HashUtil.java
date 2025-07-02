@@ -1,5 +1,8 @@
 package org.lemanoman.filesyncserver;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -9,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HashUtil {
+    static final Logger logger = LoggerFactory.getLogger(HashUtil.class);
     public enum HashType {
         MD5, SHA256
     }
@@ -113,10 +117,10 @@ public class HashUtil {
         long size = file.length();
 
         long portion = size/fragments;
-        System.out.println("Portion: " + portion);
+        logger.debug("Portion: " + portion);
         long part = portion;
         if(portion>=maxPartSize){
-            System.out.println("Portion is greater than 1mb");
+            logger.debug("Portion is greater than 1mb");
             portion = maxPartSize;
         }
         try (RandomAccessFile raf = new RandomAccessFile(file, "r");){
@@ -126,7 +130,7 @@ public class HashUtil {
                 parts.add(partBytes);
             }
             raf.close();
-            System.out.println("Parts: " + parts.size());
+            logger.debug("Part size: " + parts.size());
             long totalPartSize = 0;
             for(byte[] partBytes:parts){
                 totalPartSize+=partBytes.length;
@@ -147,10 +151,11 @@ public class HashUtil {
             //final String md5 = HashUtil.getMD5Hash(finalBytes);
             return new HashResult(file, hash, hashType.toString(), finalBytes.length, System.currentTimeMillis()-start);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            logger.debug("File not found", e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.error(e.getMessage());
         }
+        return null;
 
 
     }
@@ -160,7 +165,7 @@ public class HashUtil {
         try (InputStream is = Files.newInputStream(Paths.get(file.getAbsolutePath()))){
             return new HashResult(file,org.apache.commons.codec.digest.DigestUtils.md5Hex(is), HashType.MD5.toString(), file.length(), System.currentTimeMillis()-start);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         return null;
     }
@@ -175,11 +180,12 @@ public class HashUtil {
                 sb.append(String.format("%02x", b));
             }
             long end = System.currentTimeMillis();
-            System.out.println("MD5: " + (end - start) + "ms");
+            logger.debug("MD5: " + sb.toString());
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            logger.error(e.getMessage());
         }
+        return null;
     }
 
     public static String getSHA256Hash(byte[] input) {
@@ -195,7 +201,8 @@ public class HashUtil {
             System.out.println("SHA256: " + (end - start) + "ms");
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            logger.error(e.getMessage());
         }
+        return null;
     }
 }

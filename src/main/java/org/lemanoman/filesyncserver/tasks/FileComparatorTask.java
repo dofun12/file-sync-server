@@ -69,29 +69,51 @@ public class FileComparatorTask implements Runnable{
                 if(sourceFile.isDirectory()) {
                     FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), 10L,"MKDIR");
                     fileOperations.add(fileOperation);
+                    logger.info("Directory created: {}", targetFile.getAbsolutePath());
                     callback.onNextCompare(fileOperation);
                     continue;
                 }
                 FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(),"COPY");
                 fileOperations.add(fileOperation);
+                logger.info("File copied: {}", targetFile.getAbsolutePath());
                 callback.onNextCompare(fileOperation);
                 continue;
             }
             if(targetFile.isDirectory()) {
+                logger.warn("Target file is a directory, skipping: {}", targetFile.getAbsolutePath());
+                continue;
+            }
+            final var resultSource = HashUtil.getPartialMD5(sourceFile);
+            if(resultSource==null || resultSource.hash()==null) {
+                logger.warn("Hash of source is on error: {}", targetFile.getAbsolutePath());
+                FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "ERROR");
+                fileOperations.add(fileOperation);
+                callback.onNextCompare(fileOperation);
                 continue;
             }
             final String hashSource = HashUtil.getPartialMD5(sourceFile).hash();
-            final String targetSource = HashUtil.getPartialMD5(targetFile).hash();
+            final var resultTarget = HashUtil.getPartialMD5(targetFile);
+            if(resultTarget==null|| resultTarget.hash()==null) {
+                logger.warn("Hash of target is on error {}", targetFile.getAbsolutePath());
+                FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "ERROR");
+                fileOperations.add(fileOperation);
+                callback.onNextCompare(fileOperation);
+                continue;
+            }
+            final String targetSource = resultTarget.hash();
             if(!hashSource.equals(targetSource)) {
                 FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "OVERWRITE");
                 fileOperations.add(fileOperation);
+                logger.info("File overwritten: {}", targetFile.getAbsolutePath());
                 callback.onNextCompare(fileOperation);
             }
             FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "SKIPPED");
             fileOperations.add(fileOperation);
+            logger.info("File skipped: {}", targetFile.getAbsolutePath());
             callback.onNextCompare(fileOperation);
 
         }
+        logger.info("Files processed: {}", potencialFiles.size());
         callback.onFinish(fileOperations);
 
     }
