@@ -10,15 +10,30 @@
 <div class="container-fluid">
     <th:block th:insert="~{layout/menu.html::menu}"></th:block>
     <h1>Steps</h1>
+    <div class="row">
 
-    <div class="row" th:each="step : ${steps}">
-        <div class="col-6 text-small" th:text="${step.targetPath}"></div>
-        <div class="col-2 text-small" th:text="${step.statusMessage}"></div>
-        <div class="col-2 text-small" th:text="${step.finished}"></div>
+
     </div>
+    <table th:each="step : ${steps}">
+        <thead>
+        <tr>
+            <th>Target Path</th>
+            <th>Status Message</th>
+            <th>Finished</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="step : ${steps}">
+            <td th:text="${step.targetPath}"></td>
+            <td th:text="${step.statusMessage}"></td>
+            <td th:text="${step.finished}"></td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 
 <th:block th:insert="~{layout/imports.html::jsimports}"></th:block>
 
 </body>
+
 </html>

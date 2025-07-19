@@ -174,7 +174,7 @@ public class OperationService {
 
     }
 
-    public void startOperation(Long operationId) {
+    public void startOperation(Long operationId, boolean fast) {
         final var operation = operationRepository.findById(operationId).orElse(null);
         if (operation == null) {
             return;
@@ -182,6 +182,7 @@ public class OperationService {
         operation.setStarted(1);
         operation.setReady(0);
         operation.setRunning(0);
+        operation.setTotalScannedFiles(0);
         atomicSizeSum.put(operationId, 0.0);
         operationRepository.saveAndFlush(operation);
         var steps = stepRepository.findAllByOperation_Id(operationId);
@@ -230,11 +231,12 @@ public class OperationService {
             @Override
             public void onFinish(List<FileOperationDto> fileOperations) {
                 operation.setReady(1);
+                operation.setTotalScannedFiles(fileOperations.size());
                 operationRepository.save(operation);
                 operationRepository.flush();
                 logger.info("Finished comparing itens: {}", fileOperations.size());
             }
-        }
+        }, fast
         ));
 
     }

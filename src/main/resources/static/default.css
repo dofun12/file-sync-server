@@ -10,6 +10,9 @@
     justify-content: space-between; /* Align items within the form */
     align-items: center; /* Center items vertically */
 }
+.dt-container{
+    margin-bottom: 110px;
+}
 menu,
 ul {
     display: flex;

@@ -63,21 +63,21 @@
         <div class="col" th:text="${operation.finished}"></div>
 
         <div class="col">
-            <form th:action="@{/operations/delete}" method="post">
-                <input type="hidden" th:name="${operation.id}" th:value="${operation.id}"/>
-                <input type="submit" value="Delete"/>
+            <form th:action="@{/operations/delete}" th:id="@{form_delete_{id}(id=${operation.id})}" method="post">
+                <input type="hidden" th:name="${operation.id}"  th:value="${operation.id}"/>
+                <input type="submit" value="D" title="Delete"/>
             </form>
-        </div>
-        <div class="col">
-            <form th:action="@{/operations/start}" method="post">
+            <form th:action="@{/operations/start}"  th:id="@{form_start_{id}(id=${operation.id})}" method="post">
                 <input type="hidden" th:name="id" th:value="${operation.id}"/>
-                <input type="submit" value="Scan"/>
+                <input type="submit" value="S" title="Scan"/>
             </form>
-        </div>
-        <div th:if="${operation.ready and not operation.running}">
-            <form th:action="@{/steps/run}" method="post">
+            <form th:action="@{/operations/start?fast=true}"  th:id="@{form_start_fast_{id}(id=${operation.id})}" method="post">
+                <input type="hidden" th:name="id" th:value="${operation.id}"/>
+                <input type="submit" value="SF" title="Scan"/>
+            </form>
+            <form th:if="${operation.ready and not operation.running}" th:id="@{form_operation_{id}(id=${operation.id})}" th:action="@{/steps/run}" method="post">
                 <input type="hidden" name="id" th:value="${operation.id}">
-                <input type="submit" value="Iniciar operação">
+                <input type="submit" value="I" title="Iniciar operação"/>
             </form>
         </div>
         <div th:if="${operation.running or operation.finished}" class="col">

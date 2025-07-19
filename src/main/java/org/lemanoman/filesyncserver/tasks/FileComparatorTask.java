@@ -15,12 +15,21 @@ public class FileComparatorTask implements Runnable{
     final String targetPath;
     final FileComparatorCallback callback;
     Long id = null;
+    boolean fast = false;
 
     public FileComparatorTask(Long id, String sourcePath, String targetPath, FileComparatorCallback callback) {
         this.id = id;
         this.sourcePath = sourcePath;
         this.targetPath = targetPath;
         this.callback = callback;
+    }
+
+    public FileComparatorTask(Long id, String sourcePath, String targetPath, FileComparatorCallback callback, boolean fast) {
+        this.id = id;
+        this.sourcePath = sourcePath;
+        this.targetPath = targetPath;
+        this.callback = callback;
+        this.fast = fast;
     }
 
     public FileComparatorTask(String sourcePath, String targetPath, FileComparatorCallback callback) {
@@ -62,9 +71,9 @@ public class FileComparatorTask implements Runnable{
             String sourcePath = source.getAbsolutePath();
             sourcePath = sourcePath.replaceAll("\\\\", "\\\\\\\\");
             String newFilename = sourceFile.getAbsolutePath();
-            newFilename = newFilename.replaceAll(sourcePath, "@");
+            newFilename = newFilename.replaceAll(sourcePath, "@#");
             potencialFiles.add(newFilename);
-            File targetFile = new File(newFilename.replaceAll("@", target.getAbsolutePath().replaceAll("\\\\", "\\\\\\\\")));
+            File targetFile = new File(newFilename.replaceAll("@#", target.getAbsolutePath().replaceAll("\\\\", "\\\\\\\\")));
             if(!targetFile.exists()) {
                 if(sourceFile.isDirectory()) {
                     FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), 10L,"MKDIR");
@@ -81,6 +90,16 @@ public class FileComparatorTask implements Runnable{
             }
             if(targetFile.isDirectory()) {
                 logger.warn("Target file is a directory, skipping: {}", targetFile.getAbsolutePath());
+                FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "SKIPPED");
+                fileOperations.add(fileOperation);
+                logger.info("Directory exists: {}", targetFile.getAbsolutePath());
+                continue;
+            }
+            if(fast){
+                FileOperationDto fileOperation = new FileOperationDto(sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), sourceFile.length(), "SKIPPED");
+                fileOperations.add(fileOperation);
+                logger.info("File exists (fastmode): {}", targetFile.getAbsolutePath());
+                callback.onNextCompare(fileOperation);
                 continue;
             }
             final var resultSource = HashUtil.getPartialMD5(sourceFile);
@@ -113,7 +132,7 @@ public class FileComparatorTask implements Runnable{
             callback.onNextCompare(fileOperation);
 
         }
-        logger.info("Files processed: {}", potencialFiles.size());
+        logger.info("Files processed: {}/{}", fileOperations.size(), potencialFiles.size());
         callback.onFinish(fileOperations);
 
     }

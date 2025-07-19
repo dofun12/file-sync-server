@@ -1,5 +1,6 @@
 package org.lemanoman.filesyncserver.controller;
 
+import org.lemanoman.filesyncserver.dto.StepsResumeDto;
 import org.lemanoman.filesyncserver.model.LocationModel;
 import org.lemanoman.filesyncserver.model.OperationModel;
 import org.lemanoman.filesyncserver.model.OperationTypeModel;
@@ -34,6 +35,7 @@ public class StepController {
         }
         model.addAttribute("operation", operation);
         List<StepModel> stepModels = operationService.getListSteps(id);
+        model.addAttribute("resume", new StepsResumeDto(stepModels));
         model.addAttribute("steps", stepModels);
         return "steps";
     }
@@ -46,6 +48,7 @@ public class StepController {
         }
         model.addAttribute("operation", operation);
         List<StepModel> stepModels = operationService.getListSteps(id);
+        model.addAttribute("resume", new StepsResumeDto(stepModels));
         model.addAttribute("steps", stepModels);
         return "steps_status";
     }

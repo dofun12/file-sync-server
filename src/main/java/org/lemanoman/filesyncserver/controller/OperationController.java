@@ -15,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -60,8 +61,8 @@ public class OperationController {
     }
 
     @PostMapping("/operations/start")
-    public String startOperation(String id) {
-        operationService.startOperation(Long.parseLong(id));
+    public String startOperation(String id, @RequestParam(required = false) boolean fast) {
+        operationService.startOperation(Long.parseLong(id), fast);
         return "redirect:/operations";
     }
 
