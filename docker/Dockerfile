@@ -1,9 +1,5 @@
-FROM lemanoman/java-21-python:latest
+FROM amazoncorretto:21
 
-RUN apt-get update
-RUN apt-get install -y ffmpeg
-RUN apt-get install -y htop
-RUN apt-get install -y bash
 RUN mkdir -p /out
 RUN mkdir -p /out/files
 
